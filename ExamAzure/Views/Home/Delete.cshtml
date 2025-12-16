@@ -1,0 +1,22 @@
+﻿@model string
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Підтвердження видалення";
+}
+
+<div class="container mt-5">
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+            Підтвердження видалення
+        </div>
+        <div class="card-body">
+            <p>Ви впевнені, що хочете видалити файл <strong>@Model</strong>?</p>
+            <form method="post" asp-action="Delete" asp-controller="Home">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="name" value="@Model" />
+                <button type="submit" class="btn btn-danger">Видалити</button>
+                <a asp-action="Index" class="btn btn-secondary">Скасувати</a>
+            </form>
+        </div>
+    </div>
+</div>

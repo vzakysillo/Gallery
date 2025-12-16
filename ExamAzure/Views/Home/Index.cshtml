@@ -1,0 +1,66 @@
+﻿@model IEnumerable<GalleryViewModel>
+@{
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <form asp-action="Upload" asp-controller="Home" method="post" enctype="multipart/form-data" class="mb-4 d-flex gap-2">
+        <input type="file" name="file" accept="image/*" class="form-control" required />
+        <button type="submit" class="btn btn-primary">Завантажити</button>
+        @Html.AntiForgeryToken()
+    </form>
+
+    <div class="mb-3 d-flex gap-2">
+        <input id="search" placeholder="Пошук..." class="form-control" />
+        <button id="btnSearch" class="btn btn-outline-primary">Пошук</button>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+        @foreach (var item in Model)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <img src="@item.PreviewUri" class="card-img-top" alt="@Html.Encode(item.OriginalFileName ?? item.Name)" style="object-fit:cover; height:180px;">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">@Html.Encode(item.OriginalFileName ?? item.Name)</h5>
+                        <p class="card-text mb-2">@item.SizeHuman • @item.ContentType</p>
+                        <p class="text-muted mb-2" style="font-size:0.85rem;">@item.LastModified.ToLocalTime().ToString("g")</p>
+                        <div class="mt-auto d-flex justify-content-between gap-2">
+                            <button class="btn btn-sm btn-outline-secondary btnCopy" data-name="@item.Name">Скопіювати посилання</button>
+                            <a asp-action="DeleteConfirm" asp-route-name="@item.Name" class="btn btn-sm btn-outline-danger">Видалити</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.btnCopy').forEach(btn=>{
+        btn.addEventListener('click', async ()=>{
+            const name = btn.dataset.name;
+            const resp = await fetch(`/files/${encodeURIComponent(name)}/link`);
+            if (!resp.ok) { alert('Не вдалося отримати лінк'); return; }
+            const data = await resp.json();
+            const url = data.url;
+            await navigator.clipboard.writeText(url);
+            alert('Посилання скопійовано в буфер обміну');
+        });
+    });
+
+    document.getElementById('btnSearch').addEventListener('click', ()=>{
+        const q = document.getElementById('search').value;
+        location.href = '/?q=' + encodeURIComponent(q);
+    });
+</script>
